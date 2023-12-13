@@ -1,0 +1,29 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+        "Spritesheetv2..tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        }
+    },
+    "last.exportedFilePath": "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles",
+    "last.imagePath": "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/Tiled",
+    "lastUsedTilesetExportFilter": "JSON tileset files (*.tsj *.json)",
+    "map.fixedSize": false,
+    "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
+    "map.lastUsedFormat": "tmx",
+    "openFiles": [
+    ],
+    "project": "gamejam.tiled-project",
+    "property.type": "bool",
+    "recentFiles": [
+        "Spritesheetv2..tsx"
+    ],
+    "tileset.lastUsedFormat": "tsx"
+}
