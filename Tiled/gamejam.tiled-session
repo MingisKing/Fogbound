@@ -3,11 +3,25 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "",
+    "activeFile": "tileset.tsx",
+    "automapping.whileDrawing": true,
     "expandedProjectPaths": [
+        "."
     ],
     "fileStates": {
         "Spritesheetv2..tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "background.tmx": {
+            "scale": 0.25,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 1060,
+                "y": 1082
+            }
+        },
+        "tileset.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
         }
@@ -19,11 +33,19 @@
     "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
     "map.lastUsedFormat": "tmx",
     "openFiles": [
+        "background.tmx",
+        "tileset.tsx"
     ],
     "project": "gamejam.tiled-project",
     "property.type": "bool",
     "recentFiles": [
+        "background.tmx",
+        "tileset.tsx",
         "Spritesheetv2..tsx"
     ],
-    "tileset.lastUsedFormat": "tsx"
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 64,
+        "width": 64
+    }
 }
