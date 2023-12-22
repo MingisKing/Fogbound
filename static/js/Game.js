@@ -113,6 +113,7 @@ class GameScene extends SceneStruct{
 
     this.terrain = this.map.createLayer('terrain', this.tileset,0,0);
     this.terrain.setCollisionByProperty({ collides: true });
+    this.terrain.setDepth(998)
 
     this.chars = this.map.createLayer('chars', this.tileset,0,0);
     this.chars.setCollisionByProperty({ collides: true });
@@ -151,20 +152,22 @@ class GameScene extends SceneStruct{
     this.load.audio('boop', 'static/gameFiles/boop.mp3')
     this.load.audio('bing', 'static/gameFiles/bing.mp3')
     this.load.image('vision', 'static/gameFiles/vision.png')
-    this.load.image('fogofwar', 'static/gameFiles/fogofwar.png')
+    this.load.image('fog', 'static/gameFiles/fog.png')
   }
 
   fogOfWarSetup(){
-    const width = this.scale.width
-	  const height = this.scale.height
+    // the width and height of map
+    const width = 5000
+    const height = 5000
 
     // make a RenderTexture that is the size of the screen
     this.rt = this.make.renderTexture({
-      x: this.cameras.main.scrollX,
-      y: this.cameras.main.scrollY,
+      x: 0,
+      y: 0,
       width,
       height
     }, true)
+
 
     // add rendertexture
     // this.add.renderTexture(this.rt)
@@ -173,14 +176,33 @@ class GameScene extends SceneStruct{
     // this.rt.fill(0x000000, 1)
 
     // draw the floorLayer into it
-    // this.rt.draw(this.background, 0, 0)
+    this.rt.draw(this.background, 0, 0)
+    this.rt.draw(this.terrain, 0, 0)
 
-    // draw fog of war
-    this.rt.draw('fogofwar', 0, 0)
+    // // draw fog of war
+    // this.rt.draw('fogofwar', 0, 0)
 
-    // set a light blue tint
-    // this.rt.setTint(0x0a2948)
+    // // set a light blue tint
+    // // this.rt.setTint(0x0a2948)
     
+    // Create a list of fog sprites
+    this.foglist = []
+    for (var j=0; j<50; j++){
+      this.foglist.push([])
+      for (var i=0; i<20; i++){
+        // random value x and y for fog placement
+        var x = Math.random() * 100
+        var y = Math.random() * 100
+
+        var fog = new Fog(this,i*295-100+x,j*24-80+y,'fog').setOrigin(0,0)
+        this.foglist[j].push(fog)
+        this.foglist[j][i].setAlpha(0.95)
+        this.foglist[j][i].setDepth(998)
+        this.add.existing(this.foglist[j][i])
+      }
+    }
+    this.rt.setDepth(999)
+
     this.vision = this.make.image({
       x: this.player.x,
       y: this.player.y,
@@ -206,17 +228,22 @@ class GameScene extends SceneStruct{
 
   update(){
     this.player.update()
-
     this.testenemy.update()
+
+    for (var j=0; j<50; j++){
+      for (var i=0; i<20; i++){
+        this.foglist[j][i].update()
+      }
+    }
+
+    //  Every time you click, shake the camera
+    this.input.on('pointerdown', function () {
+      this.cameras.main.flash();
+    }, this);
 
     if (this.vision){
       this.vision.x = this.player.x
       this.vision.y = this.player.y
-    }
-
-    if (this.rt){
-      this.rt.x = this.cameras.main.scrollX
-      this.rt.y = this.cameras.main.scrollY
     }
 
     if (this.keyI.isDown){
@@ -238,6 +265,25 @@ class GameScene extends SceneStruct{
 }
 
 // Sprites
+// Fog
+class Fog extends Phaser.Physics.Arcade.Sprite{
+  constructor(scene,x,y,spriteKey){
+    super(scene,x,y,spriteKey)
+    //initiliase any properties of the enemy here
+    scene.add.existing(this);
+    scene.physics.add.existing(this);
+    this.velocityX = Math.random() * 100
+  }
+
+  update(){
+    this.setVelocityX(this.velocityX);
+
+    // delete and replace if out of camera
+    
+  }
+
+}
+
 // Menu
 class Menu extends Phaser.GameObjects.Sprite{
   constructor(scene, x, y, texture){

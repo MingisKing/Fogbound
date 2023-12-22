@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "tileset.tsx",
+    "activeFile": "background.tmx",
     "automapping.whileDrawing": true,
     "expandedProjectPaths": [
         "."
@@ -17,8 +17,8 @@
             "scale": 0.25,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 1060,
-                "y": 1082
+                "x": 1058,
+                "y": 1078
             }
         },
         "tileset.tsx": {
@@ -39,8 +39,8 @@
     "project": "gamejam.tiled-project",
     "property.type": "bool",
     "recentFiles": [
-        "background.tmx",
         "tileset.tsx",
+        "background.tmx",
         "Spritesheetv2..tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
