@@ -7,7 +7,7 @@ class Stats{
   }
 }
 
-class Weapon extends Stats{
+class WeaponStats extends Stats{
   constructor(at,hp,name){
     super(at,hp,name)
   }
@@ -113,7 +113,13 @@ class GameScene extends SceneStruct{
 
     this.terrain = this.map.createLayer('terrain', this.tileset,0,0);
     this.terrain.setCollisionByProperty({ collides: true });
-    this.terrain.setDepth(998)
+
+
+    this.terrain.shuffle(-16, 0, 1000, 1000)
+    console.log('Randomized tiles!');
+    // change collision information
+    this.terrain.setCollisionByProperty({ collides: true });
+
 
     this.chars = this.map.createLayer('chars', this.tileset,0,0);
     this.chars.setCollisionByProperty({ collides: true });
@@ -127,6 +133,10 @@ class GameScene extends SceneStruct{
     this.player = new Player(this,32,66,"mc")
     this.player.setDepth(1000)
     this.sound.add('boop')
+    this.sound.add('bing')
+    this.foggyplains = this.sound.add('foggyplains')
+    this.foggyplains.setLoop(true)
+    this.foggyplains.play()
   }
   
   cameraSetup(){
@@ -153,6 +163,8 @@ class GameScene extends SceneStruct{
     this.load.audio('bing', 'static/gameFiles/bing.mp3')
     this.load.image('vision', 'static/gameFiles/vision.png')
     this.load.image('fog', 'static/gameFiles/fog.png')
+    this.load.audio('foggyplains', 'static/gameFiles/foggyplains.mp3')
+    this.load.image('weapon', 'static/gameFiles/weapon.png')
   }
 
   fogOfWarSetup(){
@@ -221,14 +233,18 @@ class GameScene extends SceneStruct{
     this.levelSetup()
     this.keysSetUp();
     this.cameraSetup()
-    this.fogOfWarSetup()
 
     this.testenemy = new Enemy(this, 900, 100, "marms")
+
+    this.fogOfWarSetup()
   }
 
   update(){
     this.player.update()
-    this.testenemy.update()
+    
+    if (this.testenemy){
+      this.testenemy.update()
+    }
 
     for (var j=0; j<50; j++){
       for (var i=0; i<20; i++){
@@ -257,8 +273,6 @@ class GameScene extends SceneStruct{
 
             // change collision information
             this.terrain.setCollisionByProperty({ collides: true });
-
-
         }
     }
   }
@@ -279,6 +293,9 @@ class Fog extends Phaser.Physics.Arcade.Sprite{
     this.setVelocityX(this.velocityX);
 
     // delete and replace if out of camera
+    if (this.x > 5000){
+      this.x = -320
+    }
     
   }
 
@@ -354,6 +371,7 @@ class Enemy extends Phaser.Physics.Arcade.Sprite{
       frameRate: 10,
       repeat: -1
     });
+    this.setDepth(1000)
   }
 
   initPhysics(){
@@ -514,8 +532,47 @@ class Player extends Phaser.Physics.Arcade.Sprite
         this.scene.menu.weaponbutton.setVisible(false)
       }
     }
+
+    if (this.scene.keyJ.isDown){
+      // create a rectangle sprite for the weapon
+      this.weapon = new Weapon(this.scene,this.x,this.y,"weapon")
+      this.weapon.setDepth(999)
+      this.scene.physics.add.existing(this.weapon)
+      this.scene.physics.add.collider(this.weapon, this.scene.terrain, () => {
+        this.weapon.destroy()
+      });
+    }
   }
 }
+
+// Weapon
+class Weapon extends Phaser.Physics.Arcade.Sprite{
+  constructor(scene,x,y,spriteKey){
+    super(scene,x,y,spriteKey)
+    //initiliase any properties of the weapon here
+    this.initPhysics()
+  }
+
+  initPhysics(){
+    //initiliase the physics of the character (drag, etc.)
+    this.scene.add.existing(this)
+    this.scene.physics.add.existing(this)
+    this.scene.physics.add.collider(this, this.scene.terrain, () => {
+      this.destroy()
+    });
+    this.scene.physics.add.collider(this, this.scene.background);
+    this.scene.physics.add.collider(this, this.scene.chars);
+    this.scene.physics.add.collider(this, this.scene.player);
+    this.scene.physics.add.collider(this, this.scene.terrain)
+    this.scene.physics.add.collider(this, this.scene.testenemy, () => {
+      // disable weapon and enemy
+      this.destroy()
+      this.scene.testenemy.destroy()
+    });
+
+  }
+}
+
 
 const config = {
   type: Phaser.AUTO,
