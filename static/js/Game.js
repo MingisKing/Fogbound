@@ -188,6 +188,7 @@ class PlainsScene extends GameScene{
       frameWidth: 64,
       frameHeight: 128
     } )
+    this.load.image('hpbar', 'static/gameFiles/hpbar.png')
 
   }
 
@@ -231,6 +232,10 @@ class PlainsScene extends GameScene{
     this.enemies.push(new Creaks(this, 1000, 1000))
 
     this.fogOfWarSetup()
+
+        // create a big rectangle for hp bar
+
+        this.hpbar = new HpBar(this, 32, 32, 'hpbar', this.player)
   }
 }
 
@@ -367,23 +372,27 @@ class Enemy extends Phaser.Physics.Arcade.Sprite{
     this.scene.physics.add.existing(this)
     this.scene.physics.add.collider(this, this.scene.background);
     this.scene.physics.add.collider(this, this.scene.chars);
-    this.scene.physics.add.collider(this, this.scene.player);
     this.scene.physics.add.collider(this, this.scene.terrain) 
   }
 
   update(){
     // check hp
     if (this.hp <= 0){
+      this.scene.events.off('update', this.update, this)
       this.destroy()
     }
 
     // check if hit
-    if (this.scene.physics.overlap(this, this.scene.player.slash)){
+    if (this && this.scene && this.scene.physics.overlap(this, this.scene.player.slash)){
       console.log("hit")
       // set tint for 0.1 seconds
       this.setTint(0xff0000)
-      this.scene.time.delayedCall(100, () => {
+      this.scene.time.delayedCall(1000, () => {
         this.clearTint()
+        // stun enemy for 0.1 seconds
+        if (this.hp > 0){
+          this.setVelocity(0)
+        }
       });
     }
   }
@@ -428,23 +437,6 @@ class Marms extends Enemy{
     const prevVelocity = this.body.velocity.clone();
 
     this.setVelocity(0)
-
-    if (this.scene.player.x > this.x){
-      this.setVelocityX(speed)
-      this.direction = "right"
-    }
-    else if (this.scene.player.x < this.x){
-      this.setVelocityX(-speed)
-      this.direction = "left"
-    }
-    if (this.scene.player.y > this.y){
-      this.setVelocityY(speed)
-      this.direction = "down"
-    }
-    else if (this.scene.player.y < this.y){
-      this.setVelocityY(-speed)
-      this.direction = "up"
-    }
 
     this.body.velocity.normalize().scale(speed);
 
@@ -506,41 +498,63 @@ class Creaks extends Enemy{
 
   update(){
     // Enemy movements: move slowly towards the player
-    const speed = 100;
-    const player = this.scene.player;
+    if (this.scene){
+      const speed = 250;
+      const player = this.scene.player;
 
-    //check distance is between player and enemy is close enough
-    const distance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+      //check distance is between player and enemy is close enough
+      const distance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
 
-    var prevVelocity = this.body.velocity.clone();
-    if (prevVelocity.x < 0) this.anims.play('left', true);
-    else if (prevVelocity.x > 0) this.anims.play('right', true);
-    else if (prevVelocity.y < 0) this.anims.play('up', true);
-    else if (prevVelocity.y > 0) this.anims.play('down', true);
+      var prevVelocity = this.body.velocity.clone();
+      if (prevVelocity.x < 0) {this.anims.play('left', true); this.setFlipX(true);}
+      else if (prevVelocity.x > 0) {this.anims.play('right', true); this.setFlipX(false);}
+      else if (prevVelocity.y < 0) this.anims.play('up', true);
+      else if (prevVelocity.y > 0) this.anims.play('down', true);
 
-    if (distance > 1000){
-      this.setVelocityX(0);
-      this.setVelocityY(0);
+      if (distance > 1000){
+        this.setVelocityX(0);
+        this.setVelocityY(0);
+      }
+      else if (distance <= 113){
+        // when too close to player circle around player
+        Phaser.Math.RotateAroundDistance(this, player.x, player.y, 0.01, 113);
+      }
+      else {
+        const angleToPlayer = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
+        const velocityX = Math.cos(angleToPlayer) * speed;
+        const velocityY = Math.sin(angleToPlayer) * speed;
+        this.setVelocityX(velocityX);
+        this.setVelocityY(velocityY);
+      }
+
+      // attack player every 3 seconds
+      if (!this.attackTimer || this.attackTimer.getProgress() === 1) {
+        // Play the sound
+        this.scene.sound.play('boop');
+
+        // Move to center of player when attacking
+
+        this.scene.physics.moveToObject(this, player, 3000);
+
+        // if hit player, player takes damage
+        if (this.scene.physics.overlap(this, this.scene.player)){
+          this.scene.player.hp -= this.at
+          this.scene.player.setTint(0xff0000)
+          this.scene.time.delayedCall(1000, () => {
+            this.scene.player.clearTint()
+          });
+          console.log("hitbyenemy"+this.scene.player.hp)
+        }
+  
+        // Set up a timer for 3 seconds
+        this.attackTimer = this.scene.time.delayedCall(3000, () => {
+          // Reset the timer when it's done
+          this.attackTimer = null;
+        });
+      }
+
+      super.update()
     }
-    else {
-      const angleToPlayer = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
-      const velocityX = Math.cos(angleToPlayer) * speed;
-      const velocityY = Math.sin(angleToPlayer) * speed;
-      this.setVelocityX(velocityX);
-      this.setVelocityY(velocityY);
-    }
-
-    // Enemy animations
-    prevVelocity = this.body.velocity.clone();
-    this.body.velocity.normalize().scale(speed);
-
-    if (prevVelocity.x < 0) this.anims.play('left', true);
-    else if (prevVelocity.x > 0) this.anims.play('right', true);
-    else if (prevVelocity.y < 0) this.anims.play('up', true);
-    else if (prevVelocity.y > 0) this.anims.play('down', true);
-    else this.anims.stop();
-
-    super.update()
   }
 }
 
@@ -591,7 +605,7 @@ class Player extends Phaser.Physics.Arcade.Sprite
         this.scene.sound.play('boop');
   
         // Set up a timer for 2 seconds
-        this.soundTimer = this.scene.time.delayedCall(1000, () => {
+        this.soundTimer = this.scene.time.delayedCall(300, () => {
           // Reset the timer when it's done
           this.soundTimer = null;
         });
@@ -609,22 +623,25 @@ class Player extends Phaser.Physics.Arcade.Sprite
 
     this.setVelocity(0)
 
-
     if (this.scene.keyA.isDown){
       this.setVelocityX(-speed)
       this.direction = "left"
+      this.prevKey = "left"
     }
     else if (this.scene.keyD.isDown){
       this.setVelocityX(speed)
       this.direction = "right"
+      this.prevKey = "right"
     }
     if (this.scene.keyW.isDown){
       this.setVelocityY(-speed)
       this.direction = "up"
+      this.prevKey = "up"
     }
     else if (this.scene.keyS.isDown){
       this.setVelocityY(speed)
       this.direction = "down"
+      this.prevKey = "down"
     }
 
     this.body.velocity.normalize().scale(speed);
@@ -666,19 +683,24 @@ class Player extends Phaser.Physics.Arcade.Sprite
     if (this.scene.keyJ.isDown){
       // can only attack every 1 second
       if (!this.attackTimer || this.attackTimer.getProgress() === 1) {
+        this.scene.input.keyboard.resetKeys();
+        this.scene.input.keyboard.enabled = false;
+
+        this.setVelocity(0)
+
         // Play the sound
         this.scene.sound.play('boop');
 
-        console.log("j attack")
+        console.log("j attack" + this.prevKey)
         // create a 64 by 128 rectangle hitbox sprite next to the player with the image slash
         // right
-        if (prevVelocity.x >= 0) this.slash = new Phaser.Physics.Arcade.Sprite(this.scene, this.x+64, this.y, 'slash').setDepth(1000)
+        if (this.prevKey == 'right') {this.slash = new Phaser.Physics.Arcade.Sprite(this.scene, this.x+64, this.y, 'slash').setDepth(1000); console.log("right");}
         // left (flip vertically)
-        else if (prevVelocity.x < 0) this.slash = new Phaser.Physics.Arcade.Sprite(this.scene, this.x-64, this.y, 'slash').setDepth(1000).setFlipY(true)
+        else if (this.prevKey == 'left') this.slash = new Phaser.Physics.Arcade.Sprite(this.scene, this.x-64, this.y, 'slash').setDepth(1000).setAngle(180)
         // down
-        else if (prevVelocity.y >= 0) this.slash = new Phaser.Physics.Arcade.Sprite(this.scene, this.x, this.y+64, 'slash').setDepth(1000).setAngle(90)
+        else if (this.prevKey == 'down') this.slash = new Phaser.Physics.Arcade.Sprite(this.scene, this.x, this.y+64, 'slash').setDepth(1000).setAngle(90)
         // up
-        else if (prevVelocity.y < 0) this.slash = new Phaser.Physics.Arcade.Sprite(this.scene, this.x, this.y-64, 'slash').setDepth(1000).setAngle(-90)
+        else this.slash = new Phaser.Physics.Arcade.Sprite(this.scene, this.x, this.y-64, 'slash').setDepth(1000).setAngle(-90)
 
         this.scene.physics.add.existing(this.slash)
         this.scene.add.existing(this.slash)
@@ -698,9 +720,11 @@ class Player extends Phaser.Physics.Arcade.Sprite
             this.scene.enemies[i].hp -= this.at
           }
         }
+
         // destroy the slash after animation is done
         this.scene.time.delayedCall(500, () => {
           this.slash.destroy()
+          this.scene.input.keyboard.enabled = true;
         });
   
         // Set up a timer for 2 seconds
@@ -709,12 +733,32 @@ class Player extends Phaser.Physics.Arcade.Sprite
           this.attackTimer = null;
         });
       }
+    }
 
+    if (this.hp <= 0){
+      this.scene.events.off('update', this.update, this)
+      this.destroy()
+      this.scene.scene.start("StartScene")
     }
   }
 }
 
+class HpBar extends Phaser.GameObjects.Sprite{
+  constructor(scene, x, y, texture, player){
+    super(scene, x, y, texture)
+    this.player = player
+    // Make sure the menu does not move when the camera moves
+    this.setScrollFactor(0)
+    this.setDepth(1000)
+    // color it red
+  }
 
+  update(){
+    // decrease the length of the hp bar
+    this.displayWidth = this.player.hp
+  }
+  
+}
 
 
 const config = {
