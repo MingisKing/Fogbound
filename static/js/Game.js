@@ -153,6 +153,10 @@ class GameScene extends Phaser.Scene{
       this.vision.y = this.player.y
     }
 
+    // Update the HpBar
+    if (this.hpbar) {
+      this.hpbar.update();
+    }
   }
 }
 
@@ -188,7 +192,8 @@ class PlainsScene extends GameScene{
       frameWidth: 64,
       frameHeight: 128
     } )
-    this.load.image('hpbar', 'static/gameFiles/hpbar.png')
+    
+    this.load.image('hpbar', 'static/gamefiles/hpbar.png')
 
   }
 
@@ -233,9 +238,10 @@ class PlainsScene extends GameScene{
 
     this.fogOfWarSetup()
 
-        // create a big rectangle for hp bar
-
-        this.hpbar = new HpBar(this, 32, 32, 'hpbar', this.player)
+    // create a big rectangle for hp bar
+    this.hpbar = new HpBar(this, 512+64, 256-32, 'hpbar', this.player);
+    this.hpbar.setDepth(1100);
+    this.add.existing(this.hpbar);
   }
 }
 
@@ -558,6 +564,16 @@ class Creaks extends Enemy{
   }
 }
 
+// Signage for each map
+class Sign extends Phaser.GameObjects.Sprite{
+  constructor(scene,x,y,spriteKey){
+    super(scene,x,y,spriteKey)
+    //initiliase any properties of the enemy here
+    scene.add.existing(this);
+    this.setDepth(1000)
+  }
+}
+
 // Player
 class Player extends Phaser.Physics.Arcade.Sprite
 {
@@ -616,7 +632,7 @@ class Player extends Phaser.Physics.Arcade.Sprite
   }
 
   update(){
-    const speed = 200
+    const speed = 300
     if (this.body.velocity.clone != 0){
       var prevVelocity = this.body.velocity.clone();
     }
@@ -747,15 +763,16 @@ class HpBar extends Phaser.GameObjects.Sprite{
   constructor(scene, x, y, texture, player){
     super(scene, x, y, texture)
     this.player = player
-    // Make sure the menu does not move when the camera moves
+    this.scene.add.existing(this)
+    // Make sure the bar does not move when the camera moves
     this.setScrollFactor(0)
-    this.setDepth(1000)
-    // color it red
+    this.setDepth(1100)
+    this.displayWidth = (this.player.hp/100) * this.width
   }
 
   update(){
     // decrease the length of the hp bar
-    this.displayWidth = this.player.hp
+    this.displayWidth = (this.player.hp/100) * this.width
   }
   
 }
