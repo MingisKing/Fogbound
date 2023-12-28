@@ -233,12 +233,48 @@ class PlainsScene extends GameScene{
     this.enemies.push(new Marms(this, 1000, 1000))
     this.enemies.push(new Creaks(this, 1000, 1000))
 
+    const width = 5000
+    const height = 5000
+
+    // make a RenderTexture that is the size of the screen
+    this.rt2 = this.make.renderTexture({
+      x: 0,
+      y: 0,
+      width,
+      height
+    }, true)
+
+    // draw the floorLayer into it
+    this.rt2.draw(this.background, 0, 0)
+    this.rt2.draw(this.terrain, 0, 0)
+
+    this.enemyinfog = this.make.image({
+      x: this.player.x,
+      y: this.player.y,
+      key: 'enemyinfog',
+      add: false
+    })
+    this.enemyinfog.scale = 1.5
+
+    this.rt2.mask = new Phaser.Display.Masks.BitmapMask(this, this.enemyinfog)
+    this.rt2.mask.invertAlpha = true
+    this.rt2.setDepth(998)
+
     this.fogOfWarSetup()
 
     // create a big rectangle for hp bar
     this.hpbar = new HpBar(this, 256+64, 256-32, 'hpbar', this.player);
     this.hpbar.setDepth(1100);
     this.add.existing(this.hpbar);
+  }
+
+  update(){
+    super.update()
+
+    if (this.enemyinfog){
+      this.enemyinfog.x = this.player.x
+      this.enemyinfog.y = this.player.y
+    }
   }
 }
 
@@ -349,7 +385,7 @@ class Button extends Phaser.GameObjects.Sprite{
 class Enemy extends Phaser.Physics.Arcade.Sprite{
   constructor(scene,x,y,spriteKey){
     super(scene,x,y,spriteKey)
-    this.setDepth(998)
+    this.setDepth(1000)
   }
 
   initPhysics(){
@@ -518,17 +554,24 @@ class Creaks extends Enemy{
             });
             console.log("hitbyenemy"+this.scene.player.hp)
           }
-    
+          
+          // while waiting for next attack, circle around player
+          this.setVelocity(0);
+          Phaser.Math.RotateAroundDistance(this, player.x, player.y, 0.01, 113);
+          setTimeout(() => {
+            // stop circling around player
+            this.setVelocity(0);
+
+          }
+          , 2000);
+
+
           // Set up a timer for 3 seconds
-          this.attackTimer = this.scene.time.delayedCall(2000, () => {
+          this.attackTimer = this.scene.time.delayedCall(3000, () => {
             // Reset the timer when it's done
             this.attackTimer = null;
           });
         }
-        // else {
-        //   // when too close to player circle around player
-        //   Phaser.Math.RotateAroundDistance(this, player.x, player.y, 0.01, 100);
-        // }
       }
       else {
         const angleToPlayer = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
@@ -706,6 +749,8 @@ class Player extends Phaser.Physics.Arcade.Sprite
         this.scene.time.delayedCall(500, () => {
           this.slash.destroy()
           this.scene.input.keyboard.enabled = true;
+          // check for input again
+          this.scene.input.keyboard.update();
         });
   
         // Set up a timer for 2 seconds
