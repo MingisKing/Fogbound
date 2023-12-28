@@ -355,6 +355,9 @@ class Fog extends Phaser.Physics.Arcade.Sprite{
         this.x = this.scene.player.x - 800
       }
     }
+    else if (this.x > 5000){
+      this.x = -320
+    }
   }
 
 }
