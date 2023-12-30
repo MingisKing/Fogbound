@@ -77,8 +77,8 @@ class GameScene extends Phaser.Scene{
 
   fogOfWarSetup(){
     // the width and height of map
-    const width = 10000
-    const height = 10000
+    const width = 5000
+    const height = 5000
 
     // make a RenderTexture that is the size of the screen
     this.rt = this.make.renderTexture({
@@ -88,10 +88,20 @@ class GameScene extends Phaser.Scene{
       height
     }, true)
 
+
+    // add rendertexture
+    // this.add.renderTexture(this.rt)
+
+    // fill it with black
+    // this.rt.fill(0x000000, 1)
+
     // draw the floorLayer into it
     this.rt.draw(this.background, 0, 0)
     this.rt.draw(this.terrain, 0, 0)
 
+    // // draw fog of war
+    // this.rt.draw('fogofwar', 0, 0)
+    
     // Create a list of fog sprites
     this.foglist = []
     for (var j=0; j<200; j++){
@@ -119,6 +129,8 @@ class GameScene extends Phaser.Scene{
     this.vision.scale = 1.5
   
     this.rt.mask = new Phaser.Display.Masks.BitmapMask(this, this.vision)
+
+    console.log("fog of war setup")
   }
 
   create(){
@@ -205,7 +217,7 @@ class PlainsScene extends GameScene{
     this.background.setCollisionByProperty({ water: true });
 
     this.terrain = this.map.createLayer('terrain', this.tileset,0,0);
-    this.terrain.shuffle(-16, 0, 1000, 1000)
+    this.terrain.shuffle(-16, 0, 10000, 10000)
     console.log('Randomized tiles!');
     // change collision information
     this.terrain.setCollisionByExclusion([-1,17,18]);
@@ -581,19 +593,19 @@ class Player extends Phaser.Physics.Arcade.Sprite
     });
     this.anims.create({
       key: 'up',
-      frames: this.anims.generateFrameNumbers('mc', { start: 0, end: 3 }),
-      frameRate: 10,
-      repeat: -1
-    });
-    this.anims.create({
-      key: 'left',
-      frames: this.anims.generateFrameNumbers('mc', { start: 0, end: 3 }),
+      frames: this.anims.generateFrameNumbers('mc', { start: 4, end: 7 }),
       frameRate: 10,
       repeat: -1
     });
     this.anims.create({
       key: 'right',
-      frames: this.anims.generateFrameNumbers('mc', { start: 0, end: 3 }),
+      frames: this.anims.generateFrameNumbers('mc', { start: 8, end: 11 }),
+      frameRate: 10,
+      repeat: -1
+    });
+    this.anims.create({
+      key: 'left',
+      frames: this.anims.generateFrameNumbers('mc', { start: 12, end: 15 }),
       frameRate: 10,
       repeat: -1
     });
@@ -664,9 +676,9 @@ class Player extends Phaser.Physics.Arcade.Sprite
     }
     else {
       this.anims.stop();
-      if (prevVelocity.x < 0) this.setTexture('mc', 0) // move left
-      else if (prevVelocity.x > 0) this.setTexture('mc', 0) // move right
-      else if (prevVelocity.y < 0) this.setTexture('mc', 0) // move up
+      if (prevVelocity.x < 0) this.setTexture('mc', 12) // move left
+      else if (prevVelocity.x > 0) this.setTexture('mc', 8) // move right
+      else if (prevVelocity.y < 0) this.setTexture('mc', 4) // move up
       else if (prevVelocity.y > 0) this.setTexture('mc', 0) // move down
     }
 
