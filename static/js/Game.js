@@ -82,8 +82,8 @@ class GameScene extends Phaser.Scene{
 
     // make a RenderTexture that is the size of the screen
     this.rt = this.make.renderTexture({
-      x: 0,
-      y: 0,
+      x: width/2,
+      y: height/2,
       width,
       height
     }, true)
