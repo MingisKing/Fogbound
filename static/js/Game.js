@@ -5,8 +5,8 @@ class StartScene extends Phaser.Scene{
     super("StartScene")
   }
   preload(){
-    this.load.image('startscreen', 'static/gameFiles/startscreen.png')
-    this.load.image('fog', 'static/gameFiles/fog.png')
+    this.load.image('startscreen', 'static/gamefiles/startscreen.png')
+    this.load.image('fog', 'static/gamefiles/fog.png')
   }
 
   create(){
@@ -24,7 +24,7 @@ class StartScene extends Phaser.Scene{
 
     // Create a list of fog sprites
     this.foglist = []
-    for (var j=0; j<50; j++){
+    for (var j=0; j<200; j++){
       this.foglist.push([])
       for (var i=0; i<20; i++){
         // random value x and y for fog placement
@@ -65,6 +65,7 @@ class GameScene extends Phaser.Scene{
     this.keyEsc = this.input.keyboard.addKey(27)
     this.keyI = this.input.keyboard.addKey(73)
     this.keyJ = this.input.keyboard.addKey(74)
+    this.keyL = this.input.keyboard.addKey(76)
   }
   
   cameraSetup(){
@@ -76,8 +77,8 @@ class GameScene extends Phaser.Scene{
 
   fogOfWarSetup(){
     // the width and height of map
-    const width = 5000
-    const height = 5000
+    const width = 10000
+    const height = 10000
 
     // make a RenderTexture that is the size of the screen
     this.rt = this.make.renderTexture({
@@ -166,28 +167,28 @@ class PlainsScene extends GameScene{
   }
 
   preload(){
-    this.load.spritesheet('mc', 'static/gameFiles/mc.png', {
+    this.load.spritesheet('mc', 'static/gamefiles/mc.png', {
       frameWidth: 64,
       frameHeight: 112
     });
-    this.load.spritesheet('marms', 'static/gameFiles/marms.png', {
+    this.load.spritesheet('marms', 'static/gamefiles/marms.png', {
       frameWidth: 240,
       frameHeight: 192
     });
-    this.load.spritesheet('creaks', 'static/gameFiles/creaks.png', {
+    this.load.spritesheet('creaks', 'static/gamefiles/creaks.png', {
       frameWidth: 64,
       frameHeight: 32
     });
     this.load.image('tileset', 'Tiled/Spritesheetv2.png');
-    this.load.tilemapTiledJSON('map', 'static/gameFiles/background.json');
-    this.load.image('weaponbutton', 'static/gameFiles/weaponbutton.png');
-    this.load.audio('boop', 'static/gameFiles/boop.mp3')
-    this.load.audio('bing', 'static/gameFiles/bing.mp3')
-    this.load.image('vision', 'static/gameFiles/vision.png')
-    this.load.image('fog', 'static/gameFiles/fog.png')
-    this.load.audio('foggyplains', 'static/gameFiles/foggyplains.mp3')
+    this.load.tilemapTiledJSON('map', 'static/gamefiles/background.json');
+    this.load.image('weaponbutton', 'static/gamefiles/weaponbutton.png');
+    this.load.audio('boop', 'static/gamefiles/boop.mp3')
+    this.load.audio('bing', 'static/gamefiles/bing.mp3')
+    this.load.image('vision', 'static/gamefiles/vision.png')
+    this.load.image('fog', 'static/gamefiles/fog.png')
+    this.load.audio('foggyplains', 'static/gamefiles/foggyplains.mp3')
 
-    this.load.spritesheet('slash', 'static/gameFiles/slash.png', {
+    this.load.spritesheet('slash', 'static/gamefiles/slash.png', {
       frameWidth: 64,
       frameHeight: 128
     } )
@@ -233,33 +234,6 @@ class PlainsScene extends GameScene{
     this.enemies.push(new Marms(this, 1000, 1000))
     this.enemies.push(new Creaks(this, 1000, 1000))
 
-    const width = 5000
-    const height = 5000
-
-    // make a RenderTexture that is the size of the screen
-    this.rt2 = this.make.renderTexture({
-      x: 0,
-      y: 0,
-      width,
-      height
-    }, true)
-
-    // draw the floorLayer into it
-    this.rt2.draw(this.background, 0, 0)
-    this.rt2.draw(this.terrain, 0, 0)
-
-    this.enemyinfog = this.make.image({
-      x: this.player.x,
-      y: this.player.y,
-      key: 'enemyinfog',
-      add: false
-    })
-    this.enemyinfog.scale = 1.5
-
-    this.rt2.mask = new Phaser.Display.Masks.BitmapMask(this, this.enemyinfog)
-    this.rt2.mask.invertAlpha = true
-    this.rt2.setDepth(998)
-
     this.fogOfWarSetup()
 
     // create a big rectangle for hp bar
@@ -270,11 +244,6 @@ class PlainsScene extends GameScene{
 
   update(){
     super.update()
-
-    if (this.enemyinfog){
-      this.enemyinfog.x = this.player.x
-      this.enemyinfog.y = this.player.y
-    }
   }
 }
 
@@ -285,17 +254,17 @@ class VillageScene extends GameScene{
   }
 
   preload(){
-    this.load.spritesheet('mc', 'static/gameFiles/mc.png', {
+    this.load.spritesheet('mc', 'static/gamefiles/mc.png', {
       frameWidth: 64,
       frameHeight: 112
     });
-    this.load.audio('boop', 'static/gameFiles/boop.mp3')
-    this.load.audio('bing', 'static/gameFiles/bing.mp3')
-    this.load.audio('tersinvillage', 'static/gameFiles/tersinvillage.mp3')
+    this.load.audio('boop', 'static/gamefiles/boop.mp3')
+    this.load.audio('bing', 'static/gamefiles/bing.mp3')
+    this.load.audio('tersinvillage', 'static/gamefiles/tersinvillage.mp3')
 
-    this.load.tilemapTiledJSON('villagemap', 'static/gameFiles/village.json');
-    this.load.image('villagespritesheet1', 'static/gameFiles/villagespritesheet1.png');
-    this.load.image('villagespritesheet2', 'static/gameFiles/villagespritesheet2.png');
+    this.load.tilemapTiledJSON('villagemap', 'static/gamefiles/village.json');
+    this.load.image('villagespritesheet1', 'static/gamefiles/villagespritesheet1.png');
+    this.load.image('villagespritesheet2', 'static/gamefiles/villagespritesheet2.png');
   }
 
   levelSetup(){
@@ -349,13 +318,7 @@ class Fog extends Phaser.Physics.Arcade.Sprite{
 
   update(){
     this.setVelocityX(this.velocityX);
-    if (this.scene && this.scene.player) {
-      // delete and replace if out of camera
-      if (this.x > 5000){
-        this.x = this.scene.player.x - 800
-      }
-    }
-    else if (this.x > 5000){
+    if (this.x > 5000){
       this.x = -320
     }
   }
@@ -710,8 +673,8 @@ class Player extends Phaser.Physics.Arcade.Sprite
     if (this.scene.keyJ.isDown){
       // can only attack every 1 second
       if (!this.attackTimer || this.attackTimer.getProgress() === 1) {
-        this.scene.input.keyboard.resetKeys();
-        this.scene.input.keyboard.enabled = false;
+        // this.scene.input.keyboard.resetKeys();
+        // this.scene.input.keyboard.enabled = false;
 
         this.setVelocity(0)
 
@@ -751,9 +714,9 @@ class Player extends Phaser.Physics.Arcade.Sprite
         // destroy the slash after animation is done
         this.scene.time.delayedCall(500, () => {
           this.slash.destroy()
-          this.scene.input.keyboard.enabled = true;
+          // this.scene.input.keyboard.enabled = true;
           // check for input again
-          this.scene.input.keyboard.update();
+          // this.scene.input.keyboard.update();
         });
   
         // Set up a timer for 2 seconds
@@ -765,7 +728,7 @@ class Player extends Phaser.Physics.Arcade.Sprite
     }
 
     if (this.hp <= 0){
-      this.scene.events.off('update', this.update, this)
+      // this.scene.events.off('update', this.update, this)
       this.scene.scene.start("StartScene")
     }
   }
