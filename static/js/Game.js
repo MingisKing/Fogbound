@@ -220,7 +220,7 @@ class PlainsScene extends GameScene{
     this.terrain.shuffle(-16, 0, 10000, 10000)
     console.log('Randomized tiles!');
     // change collision information
-    this.terrain.setCollisionByExclusion([-1,17,18]);
+    this.terrain.setCollisionByExclusion([-1,17,18,34]);
 
     this.chars = this.map.createLayer('chars', this.tileset,0,0);
     this.chars.setCollisionByProperty({ collides: true });
@@ -256,6 +256,12 @@ class PlainsScene extends GameScene{
 
   update(){
     super.update()
+
+    if (this.player.x <= 0){
+      // stop scene
+      this.foggyplains.stop()
+      this.scene.start("VillageScene")
+    }
   }
 }
 
@@ -313,6 +319,17 @@ class VillageScene extends GameScene{
   create(){
     this.levelSetup()
     super.create()
+  }
+
+  update(){
+    super.update()
+
+    if (this.player.x <= 0){
+      this.tersinvillage.stop()
+      this.scene.start("PlainsScene")
+      this.player.x = 0
+      this.player.y = 0
+    }
   }
 }
 
