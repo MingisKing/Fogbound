@@ -1,3 +1,11 @@
+let playerData = {
+  playerName: "Player",
+  tutorial: true,
+  hp: 100,
+  absorb: [],
+  x: 0, y: 0
+}
+
 // Scenes Setup
 //Opening Menu
 class StartScene extends Phaser.Scene{
@@ -19,7 +27,7 @@ class StartScene extends Phaser.Scene{
     });
     this.startscreen.on('pointerup', function (pointer){
       this.clearTint();
-      this.scene.scene.start("PlainsScene")
+      this.scene.scene.start("VillageScene")
     });
 
     // Create a list of fog sprites
@@ -66,13 +74,6 @@ class GameScene extends Phaser.Scene{
     this.keyI = this.input.keyboard.addKey(73)
     this.keyJ = this.input.keyboard.addKey(74)
     this.keyL = this.input.keyboard.addKey(76)
-  }
-  
-  cameraSetup(){
-    const camera = this.cameras.main;
-    camera.setZoom(1.5);
-    camera.startFollow(this.player);
-    camera.setBounds(0, 0, 10000, 10000);
   }
 
   fogOfWarSetup(){
@@ -178,6 +179,13 @@ class PlainsScene extends GameScene{
     super("PlainsScene")
   }
 
+  cameraSetup(){
+    const camera = this.cameras.main;
+    camera.setZoom(1.5);
+    camera.startFollow(this.player);
+    camera.setBounds(0, 0, 10000, 10000);
+  }
+
   preload(){
     this.load.spritesheet('mc', 'static/gamefiles/mc.png', {
       frameWidth: 64,
@@ -229,7 +237,7 @@ class PlainsScene extends GameScene{
 
   levelSetup(){
     this.mapSetup()
-    this.player = new Player(this,500,500,"mc")
+    this.player = new Player(this,1,500,"mc")
     this.player.setDepth(1000)
     this.sound.add('boop')
     this.sound.add('bing')
@@ -244,7 +252,7 @@ class PlainsScene extends GameScene{
 
     this.enemies = []
     this.enemies.push(new Marms(this, 1000, 1000))
-    this.enemies.push(new Creaks(this, 1000, 1000))
+    // this.enemies.push(new Creaks(this, 1000, 1000))
 
     this.fogOfWarSetup()
 
@@ -260,6 +268,8 @@ class PlainsScene extends GameScene{
     if (this.player.x <= 0){
       // stop scene
       this.foggyplains.stop()
+      playerData.x = 1
+      playerData.y = this.player.y
       this.scene.start("VillageScene")
     }
   }
@@ -269,6 +279,13 @@ class PlainsScene extends GameScene{
 class VillageScene extends GameScene{
   constructor(){
     super("VillageScene")
+  }
+
+  cameraSetup(){
+    const camera = this.cameras.main;
+    camera.setZoom(1.5);
+    camera.startFollow(this.player);
+    camera.setBounds(0, 0, 50*64, 30*64);
   }
 
   preload(){
@@ -287,7 +304,13 @@ class VillageScene extends GameScene{
 
   levelSetup(){
     this.mapSetup()
-    this.player = new Player(this,500,500,"mc")
+    if (playerData.tutorial){
+      this.player = new Player(this,24*64,22*32,"mc")
+      playerData.tutorial = false
+    }
+    else {
+      this.player = new Player(this,playerData.x,playerData.y,"mc")
+    }
     this.player.setDepth(1000)
     this.sound.add('boop')
     this.sound.add('bing')
@@ -301,17 +324,17 @@ class VillageScene extends GameScene{
     this.tileset = this.map.addTilesetImage('home village spritesheet', 'villagespritesheet1');
     this.tileset2 = this.map.addTilesetImage('tree', 'villagespritesheet2');
     
-    this.background = this.map.createLayer('ground', [this.tileset, this.tileset2],0,0);
+    this.background = this.map.createLayer('ground', [this.tileset, this.tileset2],-128,-384);
     this.background.setCollisionByProperty({ collides: true });
 
-    this.terrain = this.map.createLayer('terrain', [this.tileset, this.tileset2],0,0);
+    this.terrain = this.map.createLayer('terrain', [this.tileset, this.tileset2],-128,-384);
     this.terrain.setCollisionByProperty({ collides: true });
     this.terrain.setDepth(1001)
 
-    this.terrain2 = this.map.createLayer('terrain2', [this.tileset, this.tileset2],0,1024);
+    this.terrain2 = this.map.createLayer('terrain2', [this.tileset, this.tileset2],-128,1024-384);
     this.terrain2.setCollisionByProperty({ collides: true });
 
-    this.treeleaves = this.map.createLayer('treeleaves', [this.tileset, this.tileset2],0,1024);
+    this.treeleaves = this.map.createLayer('treeleaves', [this.tileset, this.tileset2],-128,1024-384);
     this.treeleaves.setCollisionByProperty({ collides: true });
     this.treeleaves.setDepth(1001)
   }
@@ -324,12 +347,14 @@ class VillageScene extends GameScene{
   update(){
     super.update()
 
-    if (this.player.x <= 0){
+    if (this.player.x <= 0 || this.player.y <= 0 || this.player.x >= 50*64 || this.player.y >= 30*64){
       this.tersinvillage.stop()
       this.scene.start("PlainsScene")
       this.player.x = 0
       this.player.y = 0
     }
+
+    // console.log(this.player.x, this.player.y)
   }
 }
 
