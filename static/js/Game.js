@@ -77,16 +77,12 @@ class GameScene extends Phaser.Scene{
   }
 
   fogOfWarSetup(){
-    // the width and height of map
-    const width = 5000
-    const height = 5000
-
     // make a RenderTexture that is the size of the screen
     this.rt = this.make.renderTexture({
-      x: width/2,
-      y: height/2,
-      width,
-      height
+      x: this.background.width/2,
+      y: this.background.height/2,
+      width:this.background.width,
+      height:this.background.height
     }, true)
 
 
@@ -183,7 +179,8 @@ class PlainsScene extends GameScene{
     const camera = this.cameras.main;
     camera.setZoom(1.5);
     camera.startFollow(this.player);
-    camera.setBounds(0, 0, 10000, 10000);
+    camera.setBounds(0, 0, this.background.width, this.background.height);
+    camera.roundPixels = true
   }
 
   preload(){
@@ -251,7 +248,7 @@ class PlainsScene extends GameScene{
     super.create()
 
     this.enemies = []
-    this.enemies.push(new Marms(this, 1000, 1000))
+    // this.enemies.push(new Marms(this, 1000, 1000))
     // this.enemies.push(new Creaks(this, 1000, 1000))
 
     this.fogOfWarSetup()
@@ -286,6 +283,7 @@ class VillageScene extends GameScene{
     camera.setZoom(1.5);
     camera.startFollow(this.player);
     camera.setBounds(0, 0, 50*64, 30*64);
+    camera.roundPixels = true
   }
 
   preload(){
@@ -307,6 +305,7 @@ class VillageScene extends GameScene{
     if (playerData.tutorial){
       this.player = new Player(this,24*64,22*32,"mc")
       playerData.tutorial = false
+      this.add.text(0, 0, "Press WASD to move up, left, down and right", { font: '"Press Start 2P"' });
     }
     else {
       this.player = new Player(this,playerData.x,playerData.y,"mc")

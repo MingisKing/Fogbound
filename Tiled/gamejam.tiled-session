@@ -4,7 +4,7 @@
         "width": 2
     },
     "activeFile": "background.tmx",
-    "automapping.whileDrawing": true,
+    "automapping.whileDrawing": false,
     "expandedProjectPaths": [
         "."
     ],
@@ -43,6 +43,7 @@
         "background.tmx",
         "Spritesheetv2..tsx"
     ],
+    "resizeMap.removeObjects": true,
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
         "height": 64,
