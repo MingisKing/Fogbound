@@ -222,7 +222,11 @@ class PlainsScene extends GameScene{
     this.background.setCollisionByProperty({ water: true });
 
     this.terrain = this.map.createLayer('terrain', this.tileset,0,0);
-    this.terrain.shuffle(-16, 0, 10000, 10000)
+    this.terrain.shuffle(0, 0, 110, 30)
+    this.terrain.shuffle(0, 30, 30, 30)
+    this.terrain.shuffle(70, 30, 30, 30)
+    this.terrain.shuffle(0, 60, 110, 30)
+
     console.log('Randomized tiles!');
     // change collision information
     this.terrain.setCollisionByExclusion([-1,17,18,34]);
@@ -234,7 +238,7 @@ class PlainsScene extends GameScene{
 
   levelSetup(){
     this.mapSetup()
-    this.player = new Player(this,1,500,"mc")
+    this.player = new Player(this,playerData.x,playerData.y,"mc")
     this.player.setDepth(1000)
     this.sound.add('boop')
     this.sound.add('bing')
@@ -262,11 +266,25 @@ class PlainsScene extends GameScene{
   update(){
     super.update()
 
-    if (this.player.x <= 0){
+    console.log(this.player.x, this.player.y)
+
+    if (this.player.x >= 30*64 && this.player.x <= 79*30 && this.player.y >= 30*64 && this.player.y <= 59*64){
       // stop scene
       this.foggyplains.stop()
-      playerData.x = 1
-      playerData.y = this.player.y
+      if (this.player.x >= 30*64 && this.player.x <= 54*30){
+        playerData.x = this.player.x - 30*64 + 1
+      }
+      else{
+        playerData.x = this.player.x - 30*64 - 1
+      }
+
+      if (this.player.y >= 30*64 && this.player.y <= 44*64){
+        playerData.y = this.player.y - 30*64 + 1
+      }
+      else{
+        playerData.y = this.player.y - 30*64 - 1
+      }
+      
       this.scene.start("VillageScene")
     }
   }
@@ -348,9 +366,22 @@ class VillageScene extends GameScene{
 
     if (this.player.x <= 0 || this.player.y <= 0 || this.player.x >= 50*64 || this.player.y >= 30*64){
       this.tersinvillage.stop()
+
+      if (this.player.x >= 50*64){
+        playerData.x = this.player.x + 30*64 + 1
+      }
+      else{
+        playerData.x = this.player.x + 30*64 - 1
+      }
+
+      if (this.player.y >= 30*64){
+        playerData.y = this.player.y + 30*64 + 1
+      }
+      else{
+        playerData.y = this.player.y + 30*64 - 1
+      }
+
       this.scene.start("PlainsScene")
-      this.player.x = 0
-      this.player.y = 0
     }
 
     // console.log(this.player.x, this.player.y)
