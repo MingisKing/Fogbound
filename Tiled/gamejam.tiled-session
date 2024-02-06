@@ -3,22 +3,54 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "background.tmx",
+    "activeFile": "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles/background.json",
     "automapping.whileDrawing": false,
     "expandedProjectPaths": [
         "."
     ],
+    "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
+        "": {
+            "scaleInEditor": 1
+        },
+        "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles/background.json": {
+            "scale": 0.25,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 6554,
+                "y": 5050
+            }
+        },
+        "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles/background.json#tileset": {
+            "scaleInDock": 1
+        },
+        "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles/background.json#villageimg": {
+            "scaleInDock": 0.015625
+        },
+        "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles/village.json": {
+            "scale": 0.33,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": -95.4545454545455,
+                "y": 389.39393939393926
+            }
+        },
+        "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles/village.json#home village spritesheet": {
+            "scaleInDock": 1
+        },
+        "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles/village.json#tree": {
+            "scaleInDock": 1
+        },
         "Spritesheetv2..tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
         "background.tmx": {
             "scale": 0.25,
-            "selectedLayer": 0,
+            "selectedLayer": 1,
             "viewCenter": {
-                "x": 1022,
-                "y": 2610
+                "x": 3022,
+                "y": 2590
             }
         },
         "tileset.tsx": {
@@ -27,23 +59,27 @@
         }
     },
     "last.exportedFilePath": "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles",
-    "last.imagePath": "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/Tiled",
+    "last.imagePath": "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles",
     "lastUsedTilesetExportFilter": "JSON tileset files (*.tsj *.json)",
     "map.fixedSize": false,
     "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
-    "map.lastUsedFormat": "tmx",
+    "map.lastUsedFormat": "json",
     "openFiles": [
-        "background.tmx",
-        "tileset.tsx"
+        "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles/background.json",
+        "tileset.tsx",
+        "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles/village.json"
     ],
     "project": "gamejam.tiled-project",
     "property.type": "bool",
     "recentFiles": [
+        "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles/village.json",
         "tileset.tsx",
+        "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles/background.json",
         "background.tmx",
         "Spritesheetv2..tsx"
     ],
     "resizeMap.removeObjects": true,
+    "tileset.embedInMap": true,
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
         "height": 64,
