@@ -1,6 +1,7 @@
 let playerData = {
   playerName: "Player",
   tutorial: true,
+  tutorial2: true,
   hp: 100,
   absorb: [],
   x: 0, y: 0
@@ -27,6 +28,10 @@ class StartScene extends Phaser.Scene{
     });
     this.startscreen.on('pointerup', function (pointer){
       this.clearTint();
+      while (playername == null || playername == "") {
+        var playername = prompt("Please enter your name", "Player");
+        playerData.playerName = playername
+      }
       this.scene.scene.start("VillageScene")
     });
 
@@ -330,10 +335,20 @@ class VillageScene extends GameScene{
     if (playerData.tutorial){
       this.player = new Player(this,24*64,22*32,"mc")
       playerData.tutorial = false
-      this.textstart = this.add.text(800, 450, "Press WASD to move up, left, down and right", { font: '"Press Start 2P"', fontSize: "1000px"});
+      this.textstart = this.add.text(800, 450-64-64, "Welcome " + playerData.playerName +"!\nPress WASD to move up, left, down and right", {fontSize: "32px", color: "#FFFFFF", fontStyle: "bold"});
       this.textstart.setOrigin(0.5,0.5)
       this.textstart.setDepth(9999);
       this.textstart.setScrollFactor(0); 
+
+      // delete text after 10 seconds
+      setTimeout(() => {
+        this.textstart.destroy()
+        this.textstart2 = this.add.text(800, 450-64-64, "Leave the town to start you mission!", {fontSize: "32px", color: "#FFFFFF", fontStyle: "bold"});
+        this.textstart2.setOrigin(0.5,0.5)
+        this.textstart2.setDepth(9999);
+        this.textstart2.setScrollFactor(0);
+      }
+      , 10000);
     }
     else {
       this.player = new Player(this,playerData.x,playerData.y,"mc")
@@ -410,8 +425,8 @@ class Fog extends Phaser.Physics.Arcade.Sprite{
   constructor(scene,x,y,spriteKey){
     super(scene,x,y,spriteKey)
     //initiliase any properties of the enemy here
-    scene.add.existing(this);
-    scene.physics.add.existing(this);
+    this.scene.add.existing(this);
+    this.scene.physics.add.existing(this);
     this.velocityX = Math.random() * 100
   }
 
@@ -421,7 +436,6 @@ class Fog extends Phaser.Physics.Arcade.Sprite{
       this.x = -320
     }
   }
-
 }
 
 class Button extends Phaser.GameObjects.Sprite{
@@ -519,33 +533,71 @@ class Marms extends Enemy{
   }
 
   update(){
-    const speed = 200
-    const prevVelocity = this.body.velocity.clone();
+  // Enemy movements: move slowly towards the player
+  if (this.scene){
+    const speed = 200;
+    const player = this.scene.player;
 
-    this.setVelocity(0)
+    //check distance is between player and enemy is close enough
+    const distance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
 
-    this.body.velocity.normalize().scale(speed);
+    var prevVelocity = this.body.velocity.clone();
+    if (prevVelocity.x < 0) {this.anims.play('left', true); this.setFlipX(true);}
+    else if (prevVelocity.x > 0) {this.anims.play('right', true); this.setFlipX(false);}
+    else if (prevVelocity.y < 0) this.anims.play('up', true);
+    else if (prevVelocity.y > 0) this.anims.play('down', true);
 
-    if (this.scene.player.x > this.x){
-      this.anims.play('right', true);
+    if (distance > 1000){
+      this.setVelocityX(0);
+      this.setVelocityY(0);
     }
-    else if (this.scene.player.x < this.x){
-      this.anims.play('left', true);
-    }
-    else if (this.scene.player.y > this.y){
-      this.anims.play('down', true);
-    }
-    else if (this.scene.player.y < this.y){
-      this.anims.play('up', true);
+    else if (distance <= 100){
+      // attack player every 3 seconds
+      if (!this.attackTimer || this.attackTimer.getProgress() === 1) {
+
+        // Play the sound
+        this.scene.sound.play('boop');
+
+        // Move to center of player when attacking
+        this.scene.physics.moveToObject(this, player, 3000);
+
+        // if hit player, player takes damage
+        if (this.scene.physics.overlap(this, this.scene.player)){
+          this.scene.player.hp -= this.at
+          this.scene.player.setTint(0xff0000)
+          this.scene.time.delayedCall(1000, () => {
+            this.scene.player.clearTint()
+          });
+          console.log("hitbyenemy"+this.scene.player.hp)
+        }
+        
+        // while waiting for next attack, circle around spawn point
+        this.setVelocity(0);
+        Phaser.Math.RotateAroundDistance(this, this.x, this.y, 0.01, 113); 
+        setTimeout(() => {
+          // stop circling around spawn point
+          this.setVelocity(0);
+
+        }
+        , 2000);
+
+        // Set up a timer for 3 seconds
+        this.attackTimer = this.scene.time.delayedCall(3000, () => {
+          // Reset the timer when it's done
+          this.attackTimer = null;
+        });
+      }
     }
     else {
-      this.anims.stop();
-      if (prevVelocity.x < 0) this.setTexture(this.spriteKey, 0) // move left
-      else if (prevVelocity.x > 0) this.setTexture(this.spriteKey, 0) // move right
-      else if (prevVelocity.y < 0) this.setTexture(this.spriteKey, 0) // move up
-      else if (prevVelocity.y > 0) this.setTexture(this.spriteKey, 0) // move down
+      const angleToPlayer = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
+      const velocityX = Math.cos(angleToPlayer) * speed;
+      const velocityY = Math.sin(angleToPlayer) * speed;
+      this.setVelocityX(velocityX);
+      this.setVelocityY(velocityY);
     }
+
     super.update()
+  }
   }
 }
 
@@ -722,60 +774,64 @@ class Player extends Phaser.Physics.Arcade.Sprite
   }
 
   update(){
+    
     const speed = 300
     if (this.body.velocity.clone != 0){
       var prevVelocity = this.body.velocity.clone();
     }
 
     this.setVelocity(0)
+    
+    const attacking = this.attackTimer && this.attackTimer.getProgress() < 1;
 
-    if (this.scene.keyA.isDown){
-      this.setVelocityX(-speed)
-      this.direction = "left"
-      this.prevKey = "left"
-    }
-    else if (this.scene.keyD.isDown){
-      this.setVelocityX(speed)
-      this.direction = "right"
-      this.prevKey = "right"
-    }
-    if (this.scene.keyW.isDown){
-      this.setVelocityY(-speed)
-      this.direction = "up"
-      this.prevKey = "up"
-    }
-    else if (this.scene.keyS.isDown){
-      this.setVelocityY(speed)
-      this.direction = "down"
-      this.prevKey = "down"
-    }
-    this.body.velocity.normalize().scale(speed);
+    if (!attacking){
+      if (this.scene.keyA.isDown){
+        this.setVelocityX(-speed)
+        this.direction = "left"
+        this.prevKey = "left"
+      }
+      else if (this.scene.keyD.isDown){
+        this.setVelocityX(speed)
+        this.direction = "right"
+        this.prevKey = "right"
+      }
+      if (this.scene.keyW.isDown){
+        this.setVelocityY(-speed)
+        this.direction = "up"
+        this.prevKey = "up"
+      }
+      else if (this.scene.keyS.isDown){
+        this.setVelocityY(speed)
+        this.direction = "down"
+        this.prevKey = "down"
+      }
+      this.body.velocity.normalize().scale(speed);
 
-    if (this.scene.keyA.isDown){
-      this.anims.play('left', true);
-    }
-    else if (this.scene.keyD.isDown){
-      this.anims.play('right', true);
-    }
-    else if (this.scene.keyW.isDown){
-      this.anims.play('up', true);
-    }
-    else if (this.scene.keyS.isDown){
-      this.anims.play('down', true);
-    }
-    else {
-      this.anims.stop();
-      if (prevVelocity.x < 0) this.setTexture('mc', 12) // move left
-      else if (prevVelocity.x > 0) this.setTexture('mc', 8) // move right
-      else if (prevVelocity.y < 0) this.setTexture('mc', 4) // move up
-      else if (prevVelocity.y > 0) this.setTexture('mc', 0) // move down
+      if (this.scene.keyA.isDown){
+        this.anims.play('left', true);
+      }
+      else if (this.scene.keyD.isDown){
+        this.anims.play('right', true);
+      }
+      else if (this.scene.keyW.isDown){
+        this.anims.play('up', true);
+      }
+      else if (this.scene.keyS.isDown){
+        this.anims.play('down', true);
+      }
+      else {
+        this.anims.stop();
+        if (prevVelocity.x < 0) this.setTexture('mc', 12) // move left
+        else if (prevVelocity.x > 0) this.setTexture('mc', 8) // move right
+        else if (prevVelocity.y < 0) this.setTexture('mc', 4) // move up
+        else if (prevVelocity.y > 0) this.setTexture('mc', 0) // move down
+      }
     }
 
 
     if (this.scene.keyJ.isDown && this.scene instanceof PlainsScene){
       // can only attack every 1 second
       if (!this.attackTimer || this.attackTimer.getProgress() === 1) {
-        this.scene.input.keyboard.resetKeys();
         this.scene.input.keyboard.enabled = false;
 
         if (prevVelocity.x < 0) this.setTexture('mc', 12) // move left

@@ -17,8 +17,8 @@
             "scale": 0.25,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 6554,
-                "y": 5050
+                "x": 6550,
+                "y": 5046
             }
         },
         "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles/background.json#tileset": {
@@ -31,8 +31,8 @@
             "scale": 0.33,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": -95.4545454545455,
-                "y": 389.39393939393926
+                "x": 0,
+                "y": 512.1212121212121
             }
         },
         "C:/Users/lumha/OneDrive/Documents/Project/fictional-couscous/static/gamefiles/village.json#home village spritesheet": {
