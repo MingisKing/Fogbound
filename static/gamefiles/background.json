@@ -1484,31 +1484,6 @@
          "width":96,
          "x":0,
          "y":0
-        }, 
-        {
-         "chunks":[],
-         "height":0,
-         "id":3,
-         "name":"chars",
-         "opacity":1,
-         "startx":0,
-         "starty":0,
-         "type":"tilelayer",
-         "visible":true,
-         "width":0,
-         "x":0,
-         "y":0
-        }, 
-        {
-         "draworder":"topdown",
-         "id":4,
-         "name":"objects",
-         "objects":[],
-         "opacity":1,
-         "type":"objectgroup",
-         "visible":true,
-         "x":0,
-         "y":0
         }],
  "nextlayerid":5,
  "nextobjectid":25,

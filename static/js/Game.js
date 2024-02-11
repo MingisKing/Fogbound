@@ -7,6 +7,16 @@ let playerData = {
   x: 0, y: 0
 }
 
+const saveFile = function(){
+  localStorage.setItem('saveFile',JSON.stringify(playerData));
+};
+
+const loadFile = function(){
+  var file = JSON.parse(localStorage.getItem('saveFile'));
+  playerData = file;
+  return file;
+};
+
 // Scenes Setup
 //Opening Menu
 class StartScene extends Phaser.Scene{
@@ -19,6 +29,7 @@ class StartScene extends Phaser.Scene{
   }
 
   create(){
+    // Tint effect for the start screen
     this.startscreen = this.add.image(800, 450, 'startscreen').setInteractive()
     this.startscreen.on('pointerdown', function (pointer){
       this.setTint(0xADD8E6);
@@ -28,9 +39,12 @@ class StartScene extends Phaser.Scene{
     });
     this.startscreen.on('pointerup', function (pointer){
       this.clearTint();
-      while (playername == null || playername == "") {
+      while ((playername == null || playername == "") && playerData.tutorial) {
         var playername = prompt("Please enter your name", "Player");
         playerData.playerName = playername
+        if (playername == "Osyne") {
+          playerData.hp = 10000
+        }
       }
       this.scene.scene.start("VillageScene")
     });
@@ -43,11 +57,10 @@ class StartScene extends Phaser.Scene{
         // random value x and y for fog placement
         var x = Math.random() * 100 - 100
         var y = Math.random() * 100 - 80
-        var fog = new Fog(this,i*295+x,j*24+y,'fog').setOrigin(0,0)
+        var fog = new Fog(this,i*295+x,j*24+y,'fog', 5000).setOrigin(0,0)
         this.foglist[j].push(fog)
         this.foglist[j][i].setAlpha(0.2)
         this.foglist[j][i].setDepth(998)
-        this.add.existing(this.foglist[j][i])
       }
     }
   }
@@ -67,14 +80,6 @@ class GameScene extends Phaser.Scene{
     super({key: key})
   }
 
-  cameraSetup(){
-    const camera = this.cameras.main;
-    camera.setZoom(1.5);
-    camera.startFollow(this.player);
-    camera.setBounds(0, 0, this.background.width, this.background.height);
-    camera.roundPixels = true
-  }
-
   keysSetUp(){
     this.keyW = this.input.keyboard.addKey(87)
     this.keyS = this.input.keyboard.addKey(83)
@@ -88,64 +93,10 @@ class GameScene extends Phaser.Scene{
     this.keyL = this.input.keyboard.addKey(76)
   }
 
-  fogOfWarSetup(){
-    // make a RenderTexture that is the size of the screen
-    this.rt = this.make.renderTexture({
-      x: this.background.width/2,
-      y: this.background.height/2,
-      width:this.background.width,
-      height:this.background.height
-    }, true)
-
-
-    // add rendertexture
-    // this.add.renderTexture(this.rt)
-
-    // fill it with black
-    // this.rt.fill(0x000000, 1)
-
-    // draw the floorLayer into it
-    this.rt.draw(this.background, 0, 0)
-    this.rt.draw(this.terrain, 0, 0)
-
-    // // draw fog of war
-    // this.rt.draw('fogofwar', 0, 0)
-    
-    // Create a list of fog sprites
-    this.foglist = []
-    for (var j=0; j<200; j++){
-      this.foglist.push([])
-      for (var i=0; i<20; i++){
-        // random value x and y for fog placement
-        var x = Math.random() * 100
-        var y = Math.random() * 100
-
-        var fog = new Fog(this,i*295-100+x,j*24-80+y,'fog').setOrigin(0,0)
-        this.foglist[j].push(fog)
-        this.foglist[j][i].setAlpha(0.95)
-        this.foglist[j][i].setDepth(998)
-        this.add.existing(this.foglist[j][i])
-      }
-    }
-    this.rt.setDepth(999)
-
-    this.vision = this.make.image({
-      x: this.player.x,
-      y: this.player.y,
-      key: 'vision',
-      add: false
-    })
-    this.vision.scale = 1.5
-  
-    this.rt.mask = new Phaser.Display.Masks.BitmapMask(this, this.vision)
-
-    console.log("fog of war setup")
-  }
-
   create(){
     // this.physics.world.drawDebug = true;
     this.keysSetUp();
-    this.cameraSetup()
+    this.cameraSetup();
   }
 
   update(){
@@ -158,7 +109,7 @@ class GameScene extends Phaser.Scene{
     }
 
     if (this.foglist){
-      for (var j=0; j<200; j++){
+      for (var j=0; j<235; j++){
         for (var i=0; i<20; i++){
           this.foglist[j][i].update()
        }
@@ -207,6 +158,9 @@ class PlainsScene extends GameScene{
     this.load.image('vision', 'static/gamefiles/vision.png')
     this.load.image('fog', 'static/gamefiles/fog.png')
     this.load.audio('foggyplains', 'static/gamefiles/foggyplains.mp3')
+    this.load.audio('shoop', 'static/gamefiles/shoop.mp3')
+    this.load.audio('shing', 'static/gamefiles/shing.mp3')
+    this.load.audio('argh', 'static/gamefiles/argh.mp3')
 
     this.load.spritesheet('slash', 'static/gamefiles/slash.png', {
       frameWidth: 64,
@@ -215,6 +169,47 @@ class PlainsScene extends GameScene{
     
     this.load.image('hpbar', 'static/gamefiles/hpbar.png')
 
+  }
+
+  fogOfWarSetup(){
+    // make a RenderTexture that is the size of the screen
+    this.rt = this.make.renderTexture({
+      x: this.background.width/2,
+      y: this.background.height/2,
+      width:this.background.width,
+      height:this.background.height
+    }, true)
+
+    // draw the floorLayer into it
+    this.rt.draw(this.background, 0, 0)
+    this.rt.draw(this.terrain, 0, 0)
+    
+    // Create a list of fog sprites
+    this.foglist = []
+    for (var j=0; j<235; j++){
+      this.foglist.push([])
+      for (var i=0; i<20; i++){
+        // random value x and y for fog placement
+        var x = Math.random() * 100
+        var y = Math.random() * 100
+
+        var fog = new Fog(this,i*295-100+x,j*24-80+y,'fog',109*64).setOrigin(0,0)
+        this.foglist[j].push(fog)
+        this.foglist[j][i].setAlpha(0.95)
+        this.foglist[j][i].setDepth(998)
+      }
+    }
+    this.rt.setDepth(999)
+
+    this.vision = this.make.image({
+      x: this.player.x,
+      y: this.player.y,
+      key: 'vision',
+      add: false
+    })
+    this.vision.scale = 1.5
+  
+    this.rt.mask = new Phaser.Display.Masks.BitmapMask(this, this.vision)
   }
 
   cameraSetup(){
@@ -230,22 +225,17 @@ class PlainsScene extends GameScene{
     this.tileset = this.map.addTilesetImage('tileset', 'tileset');
     this.villageimg = this.map.addTilesetImage('villageimg', 'villageimg');
     
-    this.background = this.map.createLayer('background', [this.tileset, this.villageimg],0,0);
+    this.background = this.map.createLayer('background', [this.tileset,this.villageimg],0,0);
     this.background.setCollisionByProperty({ water: true });
 
     this.terrain = this.map.createLayer('terrain', this.tileset,0,0);
     this.terrain.shuffle(0, 0, 110, 30)
     this.terrain.shuffle(0, 30, 30, 30)
-    this.terrain.shuffle(70, 30, 30, 30)
+    this.terrain.shuffle(80, 30, 30, 30)
     this.terrain.shuffle(0, 60, 110, 30)
 
-    console.log('Randomized tiles!');
     // change collision information
     this.terrain.setCollisionByExclusion([-1,17,18,34]);
-
-    this.chars = this.map.createLayer('chars', this.tileset,0,0);
-    this.chars.setCollisionByProperty({ collides: true });
-    console.log("map setup")
   }
 
   levelSetup(){
@@ -264,41 +254,91 @@ class PlainsScene extends GameScene{
     super.create()
 
     this.enemies = []
-    this.enemies.push(new Marms(this, 1000, 1000))
-    this.enemies.push(new Creaks(this, 1000, 1000))
+
+    this.wave1 = function (scene){
+      scene.enemies.push(new Marms(scene, 1000, 1000))
+      for (var i = 0; i<5; i++){
+        scene.enemies.push(new Creaks(scene, 1000, 1000))
+      }
+      scene.textstart = scene.add.text(800, 450-64-64, "Welcome to the Plains!\nWave 1", {fontSize: "32px", color: "#FF0000", fontStyle: "bold"});
+      scene.textstart.setOrigin(0.5,0.5)
+      scene.textstart.setDepth(9999);
+      scene.textstart.setScrollFactor(0);
+    }
+    this.wave2 = function(scene){
+      this.currWave = 2
+      scene.enemies.push(new Marms(scene, 1000, 1000))
+      for (var i = 0; i<10; i++){
+        scene.enemies.push(new Creaks(scene, 1000, 1000))
+      }
+      scene.textstart = scene.add.text(800, 450-64-64, "Wave 2", {fontSize: "32px", color: "#FF0000", fontStyle: "bold"});
+      scene.textstart.setOrigin(0.5,0.5)
+      scene.textstart.setDepth(9999);
+      scene.textstart.setScrollFactor(0);
+    }
+    this.wave3 = function (scene){
+      this.currWave = 3
+      scene.enemies.push(new Marms(scene, 1000, 1000))
+      for (var i = 0; i<15; i++){
+        scene.enemies.push(new Creaks(scene, 1000, 1000))
+      }
+      scene.textstart = scene.add.text(800, 450-64-64, "Wave 3", {fontSize: "32px", color: "#FF0000", fontStyle: "bold"});
+      scene.textstart.setOrigin(0.5,0.5)
+      scene.textstart.setDepth(9999);
+      scene.textstart.setScrollFactor(0);
+      if (scene.enemies.length == 0){
+        scene.textstart.destroy()
+        //congratulations
+        scene.textstart = scene.add.text(800, 450-64-64, "Congratulations!\nYou have defeated all the enemies!", {fontSize: "32px", color: "#FF0000", fontStyle: "bold"});
+      }
+    }
 
     this.fogOfWarSetup()
 
     // create a big rectangle for hp bar
-    this.hpbar = new HpBar(this, 256+64, 256-32, 'hpbar', this.player);
+    this.hpbar = new HpBar(this, 256+32, 256-32, 'hpbar', this.player);
     this.hpbar.setDepth(1100);
-    this.add.existing(this.hpbar);
   }
 
   update(){
     super.update()
 
     console.log(this.player.x, this.player.y)
+    if (this.currWave){
+      if (this.currWave == 1 && this.enemies.length == 0){
+        this.wave2(this)
+        this.currWave = 2
+      }
+      else if (this.currWave == 2 && this.enemies.length == 0){
+        this.wave3(this)
+      }
+    }
+    else{
+      this.wave1(this)
+      this.currWave = 1
+    }
 
-    if (this.player.x >= 30*64 && this.player.x <= 79*30 && this.player.y >= 30*64 && this.player.y <= 59*64){
+    if ((this.player.x >= 30*64 && this.player.x <= 79*64) && (this.player.y >= 30*64 && this.player.y <= 59*64)){
       // stop scene
       this.foggyplains.stop()
-      if (this.player.x >= 30*64 && this.player.x <= 54*30){
-        playerData.x = this.player.x - 30*64 + 1
+      if (this.player.x >= 30*64 && this.player.x <= 54*64){
+        playerData.x = this.player.x - 30*64 + 2
       }
       else{
-        playerData.x = this.player.x - 30*64 - 1
+        playerData.x = this.player.x - 30*64 - 2
       }
 
       if (this.player.y >= 30*64 && this.player.y <= 44*64){
-        playerData.y = this.player.y - 30*64 + 1
+        playerData.y = this.player.y - 30*64 + 2
       }
       else{
-        playerData.y = this.player.y - 30*64 - 1
+        playerData.y = this.player.y - 30*64 - 2
       }
       
       this.scene.start("VillageScene")
     }
+
+
   }
 }
 
@@ -413,8 +453,6 @@ class VillageScene extends GameScene{
 
       this.scene.start("PlainsScene")
     }
-
-    // console.log(this.player.x, this.player.y)
   }
 }
 
@@ -422,8 +460,9 @@ class VillageScene extends GameScene{
 // Sprites
 // Fog
 class Fog extends Phaser.Physics.Arcade.Sprite{
-  constructor(scene,x,y,spriteKey){
+  constructor(scene,x,y,spriteKey,maxX){
     super(scene,x,y,spriteKey)
+    this.maxX = maxX
     //initiliase any properties of the enemy here
     this.scene.add.existing(this);
     this.scene.physics.add.existing(this);
@@ -432,34 +471,65 @@ class Fog extends Phaser.Physics.Arcade.Sprite{
 
   update(){
     this.setVelocityX(this.velocityX);
-    if (this.x > 5000){
+    if (this.x > this.maxX){
       this.x = -320
+    }
+    else if (this.scene.player && this.x > this.scene.player.x + 3200){
+      this.x = this.scene.player.x - 900
+    }
+    else if (this.scene.player && this.x < this.scene.player.x - 3200){
+      this.x = this.scene.player.x + 600
     }
   }
 }
 
-class Button extends Phaser.GameObjects.Sprite{
-  constructor(scene, x, y, texture, sceneToStart){
-    super(scene, x, y, texture)
-    // Make sure the button does not move when the camera moves
-    this.setScrollFactor(0)
+// Signage for each map
+class Sign extends Phaser.GameObjects.Sprite{
+  constructor(scene,x,y,spriteKey){
+    super(scene,x,y,spriteKey)
+    //initiliase any properties of the enemy here
+    scene.add.existing(this);
     this.setDepth(1000)
-    this.on('pointerdown', function (pointer){
-      this.setTint(0xADD8E6);
-    });
-
-    this.on('pointerout', function (pointer){
-      this.clearTint();
-    });
-
-    this.on('pointerup', function (pointer){
-      this.clearTint();
-      this.setInteractive(false)
-      this.scene.scene.start(sceneToStart)
-    });
   }
 }
 
+class HpBar extends Phaser.GameObjects.Sprite{
+  constructor(scene, x, y, texture, player){
+    super(scene, x, y, texture)
+    this.player = player
+    this.scene.add.existing(this)
+    // Make sure the bar does not move when the camera moves
+    this.setScrollFactor(0)
+    this.setOrigin(0,0)
+    this.setDepth(1100)
+    this.displayWidth = (this.player.hp/playerData.hp) * this.width
+    // add a border to the bar
+    this.border = this.scene.add.graphics();
+    this.border.lineStyle(4, 0x000000, 1);
+    this.border.strokeRect(x, y, this.width, this.height);
+    this.border.setDepth(1101);
+    this.border.setScrollFactor(0);
+
+    //add text to the bar
+    this.text = this.scene.add.text(x+8, y+this.height/2, this.player.hp, { font: "32px Press Start 2P", fill: '#FFFFFF', fontStyle: "bold"});
+    this.text.setOrigin(0,0.5)
+    this.text.setDepth(1102);
+    this.text.setScrollFactor(0); 
+
+    this.nametext = this.scene.add.text(x, y-32, playerData.playerName, { font: "32px Press Start 2P", fill: '#000000', fontStyle: "bold"});
+    this.nametext.setOrigin(0,0.5)
+    this.nametext.setDepth(1102);
+    this.nametext.setScrollFactor(0);
+  }
+
+  update(){
+    // decrease the length of the hp bar
+    this.displayWidth = (this.player.hp/playerData.hp) * this.width
+    this.text.setText(Math.floor(this.player.hp))
+  } 
+}
+
+// Characters
 // Enemy
 class Enemy extends Phaser.Physics.Arcade.Sprite{
   constructor(scene,x,y,spriteKey){
@@ -471,8 +541,6 @@ class Enemy extends Phaser.Physics.Arcade.Sprite{
     //initiliase the physics of the character (drag, etc.)
     this.scene.add.existing(this)
     this.scene.physics.add.existing(this)
-    this.scene.physics.add.collider(this, this.scene.background);
-    this.scene.physics.add.collider(this, this.scene.chars);
     this.scene.physics.add.collider(this, this.scene.terrain) 
   }
 
@@ -532,9 +600,17 @@ class Marms extends Enemy{
     });
   }
 
+  create(){
+    // add name as text
+    this.text = this.scene.add.text(this.x, this.y-32, "Marms", { font: "32px Press Start 2P", fill: '#FF0000', fontStyle: "bold"});
+    this.text.setOrigin(0.5,0.5)
+    this.text.setDepth(9999)
+  }
+  
   update(){
   // Enemy movements: move slowly towards the player
   if (this.scene){
+
     const speed = 200;
     const player = this.scene.player;
 
@@ -553,7 +629,7 @@ class Marms extends Enemy{
     }
     else if (distance <= 100){
       // attack player every 3 seconds
-      if (!this.attackTimer || this.attackTimer.getProgress() === 1) {
+      if ((!this.attackTimer || this.attackTimer.getProgress() === 1)&&this) {
 
         // Play the sound
         this.scene.sound.play('boop');
@@ -565,9 +641,13 @@ class Marms extends Enemy{
         if (this.scene.physics.overlap(this, this.scene.player)){
           this.scene.player.hp -= this.at
           this.scene.player.setTint(0xff0000)
-          this.scene.time.delayedCall(1000, () => {
-            this.scene.player.clearTint()
-          });
+          if (this.scene.player){
+            var playervar = this.scene.player
+            this.scene.time.delayedCall(1000, () => {
+              playervar.clearTint()
+              this.scene.sound.play('argh');
+            });
+          }
           console.log("hitbyenemy"+this.scene.player.hp)
         }
         
@@ -576,8 +656,9 @@ class Marms extends Enemy{
         Phaser.Math.RotateAroundDistance(this, this.x, this.y, 0.01, 113); 
         setTimeout(() => {
           // stop circling around spawn point
-          this.setVelocity(0);
-
+          if (this){
+            this.setVelocity(0);
+          }
         }
         , 2000);
 
@@ -632,10 +713,17 @@ class Creaks extends Enemy{
       repeat: -1
     });
   }
+  create(){
+    // add name as text
+    this.text = this.scene.add.text(this.x, this.y-32, "Creaks", { font: "32px Press Start 2P", fill: '#FF0000', fontStyle: "bold"});
+    this.text.setOrigin(0.5,0.5)
+    this.text.setDepth(9999)
+  }
 
   update(){
     // Enemy movements: move slowly towards the player
     if (this.scene){
+
       const speed = 250;
       const player = this.scene.player;
 
@@ -666,19 +754,24 @@ class Creaks extends Enemy{
           if (this.scene.physics.overlap(this, this.scene.player)){
             this.scene.player.hp -= this.at
             this.scene.player.setTint(0xff0000)
-            this.scene.time.delayedCall(1000, () => {
-              this.scene.player.clearTint()
-            });
+            if (this.scene.player){
+              var playervar = this.scene.player
+              this.scene.time.delayedCall(1000, () => {
+                playervar.clearTint()
+                this.scene.sound.play('argh');
+              });
+            }
             console.log("hitbyenemy"+this.scene.player.hp)
           }
           
           // while waiting for next attack, circle around player
           this.setVelocity(0);
-          Phaser.Math.RotateAroundDistance(this, player.x, player.y, 0.01, 113);
+          Phaser.Math.RotateAroundDistance(this, player.x, player.y, 0.01, 115);
           setTimeout(() => {
             // stop circling around player
-            this.setVelocity(0);
-
+            if (this){
+              this.setVelocity(0);
+            }
           }
           , 2000);
 
@@ -691,24 +784,14 @@ class Creaks extends Enemy{
       }
       else {
         const angleToPlayer = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
-        const velocityX = Math.cos(angleToPlayer) * speed;
-        const velocityY = Math.sin(angleToPlayer) * speed;
+        const velocityX = Math.cos(angleToPlayer) * speed + Math.random() * 100 - 50;
+        const velocityY = Math.sin(angleToPlayer) * speed + Math.random() * 100 - 50;
         this.setVelocityX(velocityX);
         this.setVelocityY(velocityY);
       }
 
       super.update()
     }
-  }
-}
-
-// Signage for each map
-class Sign extends Phaser.GameObjects.Sprite{
-  constructor(scene,x,y,spriteKey){
-    super(scene,x,y,spriteKey)
-    //initiliase any properties of the enemy here
-    scene.add.existing(this);
-    this.setDepth(1000)
   }
 }
 
@@ -719,7 +802,7 @@ class Player extends Phaser.Physics.Arcade.Sprite
     super(scene,x,y,spriteKey)
     //initiliase any properties of the player here
 
-    this.hp = 100
+    this.hp = playerData.hp
     this.at = 10
 
     this.initPhysics()
@@ -766,15 +849,12 @@ class Player extends Phaser.Physics.Arcade.Sprite
         });
       }
     });
-    this.scene.physics.add.collider(this, this.scene.background);
-    this.scene.physics.add.collider(this, this.scene.chars);
 
     this.body.setSize(64, 56)
     this.body.setOffset(0, 56)
   }
 
-  update(){
-    
+  update(){  
     const speed = 300
     if (this.body.velocity.clone != 0){
       var prevVelocity = this.body.velocity.clone();
@@ -828,8 +908,78 @@ class Player extends Phaser.Physics.Arcade.Sprite
       }
     }
 
+    if (this.scene.keyL.isDown && this.scene instanceof PlainsScene){
+      // can only absorb every 1 second
+      if (!this.attackTimer || this.attackTimer.getProgress() === 1) {
+        this.scene.input.keyboard.enabled = false;
 
-    if (this.scene.keyJ.isDown && this.scene instanceof PlainsScene){
+        if (prevVelocity.x < 0) this.setTexture('mc', 12) // move left
+        else if (prevVelocity.x > 0) this.setTexture('mc', 8) // move right
+        else if (prevVelocity.y < 0) this.setTexture('mc', 4) // move up
+        else if (prevVelocity.y > 0) this.setTexture('mc', 0) // move down
+
+        this.setVelocity(0)
+
+        // Play the sound
+        this.scene.sound.play('shoop');
+        console.log("i absorb" + this.prevKey)
+
+        // create a 64 by 128 rectangle hitbox sprite next to the player with the image slash
+        // right
+        if (this.prevKey == 'right') {this.absorb = new Phaser.Physics.Arcade.Sprite(this.scene, this.x+64, this.y).setDepth(1000); console.log("right"); this.absorb.setAngle(180)}
+        // left (flip vertically)
+        else if (this.prevKey == 'left') this.absorb = new Phaser.Physics.Arcade.Sprite(this.scene, this.x-64, this.y).setDepth(1000).setAngle(180)
+        // down
+        else if (this.prevKey == 'down') this.absorb = new Phaser.Physics.Arcade.Sprite(this.scene, this.x, this.y+64+16).setDepth(1000).setAngle(90)
+        // up
+        else this.absorb = new Phaser.Physics.Arcade.Sprite(this.scene, this.x, this.y-64-16).setDepth(1000).setAngle(-90)
+
+        this.scene.physics.add.existing(this.absorb)
+        this.scene.add.existing(this.absorb)
+        // this.absorb.anims.create({
+        //   key: 'absorb',
+        //   frames: this.anims.generateFrameNumbers('absorb', { start: 0, end: 3 }),
+        //   frameRate: 10,
+        //   repeat: -1
+        // });
+        // this.absorb.anims.play('absorb', true);
+
+        //check if the absorb is overlapping with any enemies and if so console log hit
+        for (var i=0; i<this.scene.enemies.length; i++){
+          if (this.scene.physics.overlap(this.absorb, this.scene.enemies[i])){
+            console.log("absorbed")
+            // turn enmy pale slowly
+            this.scene.time.delayedCall(1000, () => {
+              this.scene.enemies[i].setTint(0x00ff00)
+            });
+
+            playerData.absorb.push(this.scene.enemies[i].spriteKey)
+
+            console.log(playerData.absorb)
+          }
+        }
+
+        this.scene.input.keyboard.enabled = true;
+        // check for input again
+        this.scene.input.keyboard.update();
+        this.velocityX = prevVelocity.x
+        this.velocityY = prevVelocity.y
+
+        // destroy the slash after animation is done
+        this.scene.time.delayedCall(500, () => {
+          this.absorb.destroy()
+        });
+  
+        // Set up a timer for 2 seconds
+        this.attackTimer = this.scene.time.delayedCall(750, () => {
+          // Reset the timer when it's done
+          this.attackTimer = null;
+          playerData.absorb
+        });
+      }
+    }
+
+    else if (this.scene.keyJ.isDown && this.scene instanceof PlainsScene){
       // can only attack every 1 second
       if (!this.attackTimer || this.attackTimer.getProgress() === 1) {
         this.scene.input.keyboard.enabled = false;
@@ -842,7 +992,7 @@ class Player extends Phaser.Physics.Arcade.Sprite
         this.setVelocity(0)
 
         // Play the sound
-        this.scene.sound.play('boop');
+        this.scene.sound.play('shing');
 
         console.log("j attack" + this.prevKey)
         // create a 64 by 128 rectangle hitbox sprite next to the player with the image slash
@@ -886,56 +1036,66 @@ class Player extends Phaser.Physics.Arcade.Sprite
         });
   
         // Set up a timer for 2 seconds
-        this.attackTimer = this.scene.time.delayedCall(1000, () => {
+        this.attackTimer = this.scene.time.delayedCall(990, () => {
+          // Reset the timer when it's done
+          this.attackTimer = null;
+        });
+      }
+    }
+    else if (this.scene.keyI.isDown && this.scene instanceof PlainsScene){
+      // can only heal every 1 second
+      if (!this.attackTimer || this.attackTimer.getProgress() === 1) {
+        this.scene.input.keyboard.enabled = false;
+
+        if (prevVelocity.x < 0) this.setTexture('mc', 12) // move left
+        else if (prevVelocity.x > 0) this.setTexture('mc', 8) // move right
+        else if (prevVelocity.y < 0) this.setTexture('mc', 4) // move up
+        else if (prevVelocity.y > 0) this.setTexture('mc', 0) // move down
+
+        this.setVelocity(0)
+
+        // Play the sound
+        this.scene.sound.play('bing');
+
+        console.log("skill" + this.prevKey)
+
+        if (playerData.absorb.includes("marms")){
+          this.hp += 50
+          this.at += 5
+          // increase size for 10 seconds
+          this.setScale(1.5)
+          setTimeout(() => {
+            this.setScale(1)
+          }
+          , 10000);
+
+        }
+        else if (playerData.absorb.includes("creaks")){
+          this.hp += 30
+        }
+
+        this.scene.input.keyboard.enabled = true;
+        // check for input again
+        this.scene.input.keyboard.update();
+        this.velocityX = prevVelocity.x
+        this.velocityY = prevVelocity.y
+  
+        // Set up a timer for 2 seconds
+        this.attackTimer = this.scene.time.delayedCall(990, () => {
           // Reset the timer when it's done
           this.attackTimer = null;
         });
       }
     }
 
+
     if (this.hp <= 0){
       // this.scene.events.off('update', this.update, this)
+      this.scene.foggyplains.stop()
       this.scene.scene.start("StartScene")
     }
   }
 }
-
-class HpBar extends Phaser.GameObjects.Sprite{
-  constructor(scene, x, y, texture, player){
-    super(scene, x, y, texture)
-    this.player = player
-    this.scene.add.existing(this)
-    // Make sure the bar does not move when the camera moves
-    this.setScrollFactor(0)
-    this.setOrigin(0,0)
-    this.setDepth(1100)
-    this.displayWidth = (this.player.hp/100) * this.width
-    // add a border to the bar
-    this.border = this.scene.add.graphics();
-    this.border.lineStyle(4, 0x000000, 1);
-    this.border.strokeRect(x, y, this.width, this.height);
-    this.border.setDepth(1101);
-    this.border.setScrollFactor(0);
-
-    //add text to the bar
-    this.text = this.scene.add.text(x+this.width/2, y+this.height/2, this.player.hp, { font: "32px Press Start 2P", fill: '#FFFFFF' });
-    this.text.setOrigin(0.5,0.5)
-    this.text.setDepth(1102);
-    this.text.setScrollFactor(0); 
-  }
-
-  update(){
-    // decrease the length of the hp bar
-    this.displayWidth = (this.player.hp/100) * this.width
-
-    // debug
-    // this.player.hp -= 0.01
-    this.text.setText(Math.floor(this.player.hp))
-    // console.log(this.player.hp)
-  }
-  
-}
-
 
 const config = {
   type: Phaser.AUTO,
@@ -959,4 +1119,4 @@ const config = {
   autoCenter:true,
 }
   
-var game = new Phaser.Game(config);
+var Game = new Phaser.Game(config);
